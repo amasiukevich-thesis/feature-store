@@ -1,0 +1,12 @@
+STUMP_FOLDER:     'raw_crypto_data'
+
+STUMP_PATH_RAW:   'raw_crypto_data/temp.csv'
+STUMP_PATH:       'raw_crypto_data/temp2.csv'
+
+DATABASE_FOLDER:  database
+RAW_DATA_FOLDER:  raw_crypto_data
+
+URL:              'https://www.cryptodatadownload.com/cdd/Gemini_ETHUSD_1h.csv'
+
+DATE_COL:         date
+TIME_AT_REFRESH:  "21:46" # must be int the HH:MM format

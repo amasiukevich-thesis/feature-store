@@ -1,0 +1,13 @@
+pandas
+numpy
+tqdm
+requests
+pyyaml
+schedule
+SQLAlchemy==2.0.12
+duckdb-engine==0.7.0
+psycopg2-binary
+ipython
+pytest
+pylint
+black
