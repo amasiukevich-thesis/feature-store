@@ -118,10 +118,11 @@ def interpolate_missing(dataframe: pd.DataFrame) -> pd.DataFrame:
     Interpolates on the whole dataframe the values if there are 'holes' in the sequence data
 
     :param dataframe: the original data to interpolate
-
     :returns dataframe: the dataframe with the added values
     """
+
     values = []
+    next_value_full = None
     for i in tqdm(range(dataframe.shape[0] - 1)):
         current_value_full = dataframe.loc[i]
         next_value_full = dataframe.loc[i + 1]
@@ -131,18 +132,12 @@ def interpolate_missing(dataframe: pd.DataFrame) -> pd.DataFrame:
 
         values.append(current_value_full)
 
-        if (
-            convert_to_seconds(current_value[TIMESTAMP_COL] - next_value[TIMESTAMP_COL])
-            != 3600
-        ):
+        if convert_to_seconds(current_value[TIMESTAMP_COL] - next_value[TIMESTAMP_COL]) != 3600:
             values_to_append = calc_values(next_value, current_value)
             for value in values_to_append:
-                value[DATE_FIELD] = pd.to_datetime(
-                    np.int64(value[TIMESTAMP_COL])
-                ).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )  # datetime.strptime(current_value['unix'], "%Y-%m-%d %H:%M:%S")
-                value[SYMBOL] = SYMBOL
+                value[DATE_FIELD] = pd.to_datetime(np.int64(value[TIMESTAMP_COL])).strftime("%Y-%m-%d %H:%M:%S")
+                # datetime.strptime(current_value['unix'], "%Y-%m-%d %H:%M:%S")
+                value[SYMBOL_COL] = SYMBOL
                 value = pd.Series(value).reindex(COLUMNS_TO_REINDEX)
                 values.append(value)
 

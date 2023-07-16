@@ -33,5 +33,7 @@ RAW_DATA_FOLDER = yaml_dict.get("RAW_DATA_FOLDER")
 URL = yaml_dict.get("URL")
 DATE_COL = yaml_dict.get("DATE_COL")
 TIME_AT_REFRESH = yaml_dict.get("TIME_AT_REFRESH") or datetime.strftime(
-    datetime.now() + timedelta(minutes=2), "%H:%M"
+    datetime.now() + timedelta(minutes=2), "%H:%M",
 )
+
+TIMEZONE = yaml_dict.get("TIMEZONE")

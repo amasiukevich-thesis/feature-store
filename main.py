@@ -9,7 +9,7 @@ import sqlalchemy.orm
 from sqlalchemy import Column, BigInteger, String, TIMESTAMP, DECIMAL, create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from config import STUMP_PATH, URL, DATE_COL, TIME_AT_REFRESH
+from config import STUMP_PATH, URL, DATE_COL, TIME_AT_REFRESH, TIMEZONE
 
 from src.incoming_data_pipeline import prepare_raw_data, check_interpolation_needed
 from sqlalchemy import func
@@ -24,8 +24,17 @@ import os
 import requests
 import schedule
 
+import logging
 
-DEFAULT_DATE_VALUE = "2022-06-09 00:00:00"
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s]: %(message)s",
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+
+DEFAULT_DATE_VALUE = "2000-01-01 00:00:00"
 
 COLUMNS_MAPPING = {
     "unix": "unix",
@@ -50,7 +59,11 @@ connection_string = os.environ.get("CONNECTION_STRING")
 
 engine = create_engine(connection_string, pool_size=10, max_overflow=0)
 
+SYMBOL_COL = "symbol"
+
+
 class RateUnit(Base):
+
     __tablename__ = "rates"
 
     unix = Column(BigInteger, autoincrement=False, primary_key=True)
@@ -113,7 +126,7 @@ def update_db(orm_session: sqlalchemy.orm.Session, data: pd.DataFrame):
     4. Updating to the database
 
     """
-
+    logging.info("Updating the database...")
     # TODO: refactor this to use the database engine
     data.to_sql("rates", engine, if_exists="append", index=False)
 
@@ -208,6 +221,9 @@ def insert_rows(
     # TODO: data preparation - maybe into another function???
     incoming_data = pd.read_csv(STUMP_PATH)
     incoming_data = incoming_data.sort_values(DATE_COL, ascending=False)
+
+
+    # TODO: here you have a problem
     incoming_data = prepare_raw_data(incoming_data)
     incoming_data = incoming_data.rename(columns=COLUMNS_MAPPING)
 
@@ -221,40 +237,26 @@ def insert_rows(
     update_db(orm_session, incoming_data)
 
     # TODO: logging here
-    print("Successfully updated the data")
-
-
-def make_base_db(
-    orm_session: sqlalchemy.orm.Session, response: requests.Response
-) -> None:
-    """
-    Starts the database
-    """
-
-    max_date = DEFAULT_DATE_VALUE
-    insert_rows(orm_session, response, mode="begin")
-    full_data = read_from_db_and_sort(orm_session)
-    check_needed, idx_wrong = check_interpolation_needed(full_data)
-    assert not check_needed, "Interpolation needed in the database"
-
-    # TODO: logging here
-    print("Successfully updated the data")
+    logging.info("Successfully updated the data")
 
 
 def schedule_update(session_class) -> None:
     # TODO: Specify in the parameters when do you want to schedule updates
 
     orm_session = session_class()
+
     # update flow
     response = requests.get(URL)
+
+    # TODO: mode enum here
     insert_rows(orm_session, response, mode="continue")
 
-    print("Successfully updated the database")
+    logging.info("Successfully updated the database")
 
 
 if __name__ == "__main__":
 
-    print("Entering container")
+    logging.info("Entering container")
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -262,14 +264,8 @@ if __name__ == "__main__":
 
     response = requests.get(URL, timeout=300)
 
-    print("Created incomplete_db")
-
-    schedule.every().day.at(TIME_AT_REFRESH).do(lambda: schedule_update(Session))
+    schedule.every().day.at(TIME_AT_REFRESH, TIMEZONE).do(lambda: schedule_update(Session))
 
     while True:
         schedule.run_pending()
         time.sleep(60)
-
-    # TODO: think about how to schedule this procedure daily
-    # TODO: think about how to test it when deployed
-    # TODO: arrange the docker-compose.yml as you have in ChatGPT response - to deploy an embedded volume - database
