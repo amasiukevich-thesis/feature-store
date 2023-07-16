@@ -9,5 +9,5 @@ RAW_DATA_FOLDER:  raw_crypto_data
 URL:              'https://www.cryptodatadownload.com/cdd/Gemini_ETHUSD_1h.csv'
 
 DATE_COL:         date
-TIME_AT_REFRESH:  "15:15" # must be int the HH:MM format
+TIME_AT_REFRESH:  "09:00 # must be int the HH:MM format
 TIMEZONE:         "Europe/Warsaw"

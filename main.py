@@ -44,7 +44,7 @@ COLUMNS_MAPPING = {
     "close": "price_close",
     "low": "price_low",
     "high": "price_high",
-    "Volume ETH": "volume_eth",
+    "Volume ETH": "volume_crypto",
     "Volume USD": "volume_usd",
 }
 
@@ -73,7 +73,7 @@ class RateUnit(Base):
     price_close = Column(DECIMAL)
     price_low = Column(DECIMAL)
     price_high = Column(DECIMAL)
-    volume_eth = Column(DECIMAL)
+    volume_crypto = Column(DECIMAL)
     volume_usd = Column(DECIMAL)
 
 
@@ -146,13 +146,15 @@ def test_column_names(session: sqlalchemy.orm.Session):
         "price_close",
         "price_low",
         "price_high",
-        "volume_eth",
+        "volume_crypto",
         "volume_usd",
         "rate_date",
     ])
 
     assert columns == columns_actual, "columns are wrong"
 
+
+# TODO: rewrite it using SQLALchemy
 def read_from_db_and_sort(session: sqlalchemy.orm.Session) -> pd.DataFrame:
     """
     Reads from the database and returns the data as a dataframe
@@ -236,7 +238,6 @@ def insert_rows(
 
     update_db(orm_session, incoming_data)
 
-    # TODO: logging here
     logging.info("Successfully updated the data")
 
 
