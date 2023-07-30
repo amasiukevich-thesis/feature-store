@@ -7,7 +7,6 @@ from collections import Counter
 
 from typing import List, Dict
 
-
 NUM_DIGITS = 19
 NANOSEC_DIFF = 9
 HOUR_DIFF = 3600
@@ -22,6 +21,7 @@ COLUMNS_TO_INCLUDE = [
     "Volume ETH",
     "Volume USD",
 ]
+
 DATE_FIELD = "date"
 SYMBOL_COL = "symbol"
 SYMBOL = "ETH/USD"
@@ -37,6 +37,7 @@ COLUMNS_TO_REINDEX = [
     "Volume ETH",
     "Volume USD",
 ]
+
 numeric_columns = ["unix", "open", "high", "low", "close", "Volume ETH", "Volume USD"]
 
 
@@ -62,7 +63,7 @@ def align_timestamps(dataframe: pd.DataFrame) -> pd.DataFrame:
     return dataframe
 
 
-convert_to_seconds = lambda val: int(val / 10**9)
+convert_to_seconds = lambda val: int(val / 10 ** 9)
 
 
 ### Check 1
@@ -77,7 +78,7 @@ def check_interpolation_needed(dataframe: pd.DataFrame) -> bool:
     diffs = [
         int(
             (dataframe[TIMESTAMP_COL].iloc[i] - dataframe[TIMESTAMP_COL].iloc[i + 1])
-            / 10**NANOSEC_DIFF
+            / 10 ** NANOSEC_DIFF
         )
         for i in range(dataframe.shape[0] - 1)
     ]
@@ -135,6 +136,7 @@ def interpolate_missing(dataframe: pd.DataFrame) -> pd.DataFrame:
         if convert_to_seconds(current_value[TIMESTAMP_COL] - next_value[TIMESTAMP_COL]) != 3600:
             values_to_append = calc_values(next_value, current_value)
             for value in values_to_append:
+                # TODO: refactor this format to a setting
                 value[DATE_FIELD] = pd.to_datetime(np.int64(value[TIMESTAMP_COL])).strftime("%Y-%m-%d %H:%M:%S")
                 # datetime.strptime(current_value['unix'], "%Y-%m-%d %H:%M:%S")
                 value[SYMBOL_COL] = SYMBOL

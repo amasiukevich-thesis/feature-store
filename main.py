@@ -77,9 +77,6 @@ class RateUnit(Base):
     volume_usd = Column(DECIMAL)
 
 
-if 'rates' not in [table.name for table in Base.metadata.sorted_tables]:
-    Base.metadata.create_all(engine)
-
 
 def only_select_needed_rows(
     response: requests.Response, path_to_write: str, date_thr: datetime, mode="continue"
@@ -115,6 +112,7 @@ def only_select_needed_rows(
                 elif mode == "continue":
                     if datetime.strptime(date, DATE_FORMAT) > date_thr:
                         writer.writerow(row)
+
 
 def update_db(orm_session: sqlalchemy.orm.Session, data: pd.DataFrame):
     """
@@ -263,7 +261,8 @@ if __name__ == "__main__":
 
     test_column_names(session)
 
-    response = requests.get(URL, timeout=300)
+    # getting the data on the first run of the container
+    schedule_update(Session)
 
     schedule.every().day.at(TIME_AT_REFRESH, TIMEZONE).do(lambda: schedule_update(Session))
 
